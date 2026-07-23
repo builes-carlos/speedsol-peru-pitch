@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpeedSol — Trazabilidad total del combustible en el Perú</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-alt: #f6f8fc;
+    --bg-soft: #eaf0fa;
+    --ink: #0a1224;
+    --ink-2: #2c3a57;
+    --ink-3: #4a5878;
+    --border: #cdd8ec;
+    --border-soft: #e3eaf6;
+    --accent: #0e4d92;
+    --accent-bright: #1d6fd1;
+    --accent-soft: #eaf2fd;
+    --accent-ink: #0b2e63;
+    --ok: #047857;
+    --ok-soft: #ecfdf5;
+    --warn: #b45309;
+    --warn-soft: #fffbeb;
+    --danger: #b91c1c;
+    --danger-soft: #fef2f2;
+    --console: #0c1526;
+    --console-line: #1d2b47;
+    --shadow-1: 0 1px 2px rgba(10,18,36,0.04), 0 6px 16px rgba(10,18,36,0.06);
+    --shadow-2: 0 6px 12px rgba(10,18,36,0.06), 0 24px 48px rgba(10,18,36,0.10);
+    --radius: 16px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+    font-size:17px; line-height:1.65; color:var(--ink); background:var(--bg);
+  }
+  .wrap { max-width:1120px; margin:0 auto; padding:0 24px; }
+  section { padding: clamp(58px, 7vw, 96px) 0; border-top:1px solid var(--border-soft); }
+  section.alt { background:var(--bg-alt); }
+  h1 { font-size: clamp(34px, 5vw, 54px); line-height:1.12; letter-spacing:-0.02em; font-weight:900; }
+  h2 { font-size: clamp(26px, 3.4vw, 38px); line-height:1.18; letter-spacing:-0.02em; font-weight:800; margin-bottom:14px; }
+  h3 { font-size:19px; font-weight:800; letter-spacing:-0.01em; }
+  p.lead { font-size: clamp(17px, 2vw, 20px); color:var(--ink-2); max-width:820px; }
+  .eyebrow {
+    display:inline-block; font-size:13px; font-weight:800; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--accent); background:var(--accent-soft); padding:6px 12px; border-radius:999px; margin-bottom:14px;
+  }
+  strong.hl { color:var(--accent); font-weight:800; }
+
+  /* ---- Nav ---- */
+  .toc {
+    position:sticky; top:0; z-index:50; background:rgba(255,255,255,0.88);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border-soft);
+  }
+  .toc-inner { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 0; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:900; letter-spacing:-0.02em; font-size:17px; }
+  .brand .mark {
+    width:32px; height:32px; border-radius:9px; display:grid; place-items:center; color:#fff; font-size:15px; font-weight:900;
+    background: linear-gradient(135deg, var(--accent-bright), var(--warn));
+  }
+  .toc nav { display:flex; gap:4px; flex-wrap:wrap; }
+  .toc nav a {
+    text-decoration:none; color:var(--ink-3); font-size:14px; font-weight:700;
+    padding:7px 12px; border-radius:999px; transition:all .18s;
+  }
+  .toc nav a:hover { color:var(--accent); background:var(--accent-soft); }
+  .toc nav a.active { color:#fff; background:var(--accent); }
+  .nav-toggle { display:none; background:none; border:1px solid var(--border); border-radius:10px; padding:7px 11px; font-size:16px; cursor:pointer; color:var(--ink-2); }
+
+  /* ---- Cover ---- */
+  .cover { position:relative; border-top:none; overflow:hidden; padding-top: clamp(64px, 8vw, 110px); }
+  .cover::before {
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(600px 320px at 12% 0%, rgba(29,111,209,0.10), transparent 70%),
+      radial-gradient(600px 320px at 88% 4%, rgba(180,83,9,0.09), transparent 70%);
+  }
+  .cover .wrap { position:relative; }
+  .cover-badge {
+    display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--ink-3);
+    border:1px solid var(--border); border-radius:999px; padding:7px 14px; margin-bottom:22px; background:#fff;
+  }
+  .cover-badge .dot { width:8px; height:8px; border-radius:50%; background:var(--warn); }
+  .accent-under { position:relative; white-space:nowrap; }
+  .accent-under::after {
+    content:""; position:absolute; left:0; right:0; bottom:0.08em; height:0.28em; z-index:-1; border-radius:4px;
+    background: linear-gradient(90deg, rgba(29,111,209,0.28), rgba(180,83,9,0.30));
+  }
+  .cover p.lead { margin-top:18px; }
+  .pillars-mini { display:grid; grid-template-columns:repeat(3,1fr); gap:0; margin-top:44px; border:1px solid var(--border-soft); border-radius:var(--radius); background:#fff; box-shadow:var(--shadow-1); overflow:hidden; }
+  .pillar-mini { padding:22px 22px; border-left:1px solid var(--border-soft); }
+  .pillar-mini:first-child { border-left:none; }
+  .pillar-mini h3 { font-size:16px; margin:10px 0 4px; }
+  .pillar-mini p { font-size:14.5px; color:var(--ink-3); }
+
+  /* ---- Icons ---- */
+  .ic { width:42px; height:42px; border-radius:11px; display:grid; place-items:center; flex:0 0 auto; }
+  .ic svg { width:22px; height:22px; }
+  .ic-blue { background:var(--accent-soft); color:var(--accent); }
+  .ic-green { background:var(--ok-soft); color:var(--ok); }
+  .ic-warn { background:var(--warn-soft); color:var(--warn); }
+  .ic-red { background:var(--danger-soft); color:var(--danger); }
+
+  /* ---- Cards / grids ---- */
+  .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:34px; }
+  .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-top:34px; }
+  .card {
+    background:#fff; border:1px solid var(--border-soft); border-radius:var(--radius);
+    padding:24px; box-shadow:var(--shadow-1);
+  }
+  .card h3 { margin:14px 0 8px; }
+  .card p { font-size:15px; color:var(--ink-3); }
+
+  /* ---- Stat band ---- */
+  .statband { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-top:38px; }
+  .statband.three { grid-template-columns:repeat(3,1fr); }
+  .stat-tile {
+    background:#fff; border:1px solid var(--border-soft); border-radius:var(--radius);
+    padding:22px; box-shadow:var(--shadow-1); text-align:left;
+  }
+  .stat-tile .num { font-size: clamp(28px, 3vw, 38px); font-weight:900; letter-spacing:-0.02em; color:var(--accent-ink); }
+  .stat-tile .lbl { font-size:14.5px; color:var(--ink-2); font-weight:600; margin-top:4px; }
+  .stat-tile .src { display:block; font-size:12.5px; color:var(--ink-3); margin-top:10px; opacity:0.85; }
+  .stat-tile.proj { border-style:dashed; border-color:#e0b46a; background:linear-gradient(180deg, #fffdf7, #fff); }
+  .stat-tile.proj .num { color:var(--warn); }
+  .verif-pill {
+    display:inline-flex; align-items:center; gap:7px; margin-top:22px; font-size:13px; font-weight:700;
+    color:var(--ok); background:var(--ok-soft); border-radius:999px; padding:6px 13px;
+  }
+  .proj-note { font-size:13.5px; color:var(--ink-3); margin-top:16px; max-width:760px; }
+  .proj-note strong { color:var(--warn); }
+
+  /* ---- Demo console ---- */
+  .demo-tabs { display:flex; gap:10px; flex-wrap:wrap; margin:30px 0 22px; }
+  .demo-tab {
+    border:1px solid var(--border); background:#fff; border-radius:999px; padding:9px 18px;
+    font-size:14.5px; font-weight:700; color:var(--ink-2); cursor:pointer; transition:all .18s;
+  }
+  .demo-tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .demo-wrap { display:grid; grid-template-columns: 1.15fr 1fr; gap:26px; align-items:start; }
+  .console {
+    background:var(--console); border-radius:var(--radius); box-shadow:var(--shadow-2); overflow:hidden;
+    border:1px solid #22345a;
+  }
+  .console-head {
+    display:flex; align-items:center; gap:9px; padding:12px 16px; background:#101c33; border-bottom:1px solid var(--console-line);
+  }
+  .console-head .dots { display:flex; gap:6px; }
+  .console-head .dots span { width:10px; height:10px; border-radius:50%; display:block; }
+  .console-head .dots span:nth-child(1){ background:#e5534b; } .console-head .dots span:nth-child(2){ background:#e0a03c; } .console-head .dots span:nth-child(3){ background:#3fb950; }
+  .console-head .t { color:#9db3d8; font-size:13px; font-weight:700; letter-spacing:0.03em; }
+  .console-body { padding:16px 16px 20px; min-height:320px; font-family:"SF Mono", Consolas, "Courier New", monospace; font-size:13.2px; line-height:1.7; }
+  .cline { color:#c7d5ef; opacity:0; transform:translateY(6px); transition:all .4s ease; padding:3px 0; border-bottom:1px dashed rgba(157,179,216,0.10); }
+  .cline.show { opacity:1; transform:none; }
+  .cline .ts { color:#5f7396; margin-right:8px; }
+  .cline.ok { color:#7ee2b8; }
+  .cline.warn { color:#ffd27d; }
+  .cline.alert { color:#ff9c8f; font-weight:700; }
+  .beats { display:flex; flex-direction:column; gap:12px; }
+  .beat {
+    background:#fff; border:1px solid var(--border-soft); border-left:4px solid var(--border); border-radius:12px;
+    padding:14px 16px; font-size:14.5px; color:var(--ink-3); opacity:0.45; transition:all .35s;
+  }
+  .beat.active { opacity:1; border-left-color:var(--accent); box-shadow:var(--shadow-1); color:var(--ink-2); }
+  .beat b { color:var(--ink); }
+  .outcome {
+    margin-top:16px; padding:15px 18px; border-radius:12px; background:var(--ok-soft); color:var(--ok);
+    font-weight:700; font-size:15px; display:none;
+  }
+  .outcome.show { display:block; }
+
+  /* ---- Flow stages ---- */
+  .two { display:grid; grid-template-columns: 0.95fr 1.05fr; gap:38px; align-items:start; margin-top:30px; }
+  .checklist { list-style:none; margin-top:18px; }
+  .checklist li { display:flex; gap:11px; align-items:flex-start; padding:8px 0; font-size:15.5px; color:var(--ink-2); }
+  .checklist li svg { width:20px; height:20px; flex:0 0 auto; color:var(--ok); margin-top:3px; }
+  .stages { display:flex; flex-direction:column; gap:10px; }
+  .stage {
+    display:flex; align-items:center; gap:14px; background:#fff; border:1px solid var(--border-soft);
+    border-radius:13px; padding:14px 16px; cursor:pointer; transition:all .18s; box-shadow:var(--shadow-1);
+  }
+  .stage:hover { border-color:var(--accent-bright); }
+  .stage.active { border-color:var(--accent); background:var(--accent-soft); }
+  .stage .n {
+    width:30px; height:30px; border-radius:50%; background:var(--bg-soft); color:var(--accent);
+    display:grid; place-items:center; font-weight:800; font-size:14px; flex:0 0 auto;
+  }
+  .stage.active .n { background:var(--accent); color:#fff; }
+  .stage .st-t { font-weight:800; font-size:15.5px; }
+  .stage .st-s { font-size:13.5px; color:var(--ink-3); }
+  .stage-detail {
+    margin-top:14px; background:#fff; border:1px solid var(--border-soft); border-radius:13px; padding:18px 20px;
+    font-size:15px; color:var(--ink-2); box-shadow:var(--shadow-1);
+  }
+  .stage-detail b { color:var(--accent-ink); }
+
+  /* ---- Flow diagram (SVG + pasos sincronizados) ---- */
+  .flow-wrap { display:grid; grid-template-columns: 1.35fr 0.65fr; gap:26px; align-items:center; margin-top:32px; }
+  .flow-svg-card { background:#fff; border:1px solid var(--border-soft); border-radius:var(--radius); box-shadow:var(--shadow-1); padding:16px; }
+  .flow-svg-card svg { width:100%; height:auto; display:block; }
+  .zlabel { font-size:12px; font-weight:800; letter-spacing:0.1em; }
+  .dstep { opacity:0.38; transition:opacity .25s ease; }
+  .dstep.is-active { opacity:1; }
+  .dstep.is-active .edge { stroke-width:3; }
+  .checklist.two-col { column-count:2; column-gap:40px; margin-top:26px; }
+  .checklist.two-col li { break-inside:avoid; }
+  @media (max-width: 980px) {
+    .flow-wrap { grid-template-columns:1fr; }
+    .checklist.two-col { column-count:1; }
+  }
+
+  /* ---- Benefit pillars ---- */
+  .bpillars { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:34px; }
+  .bpillar {
+    background:#fff; border:1px solid var(--border-soft); border-top:4px solid var(--c, var(--accent));
+    border-radius:var(--radius); padding:22px; cursor:pointer; transition:all .18s; box-shadow:var(--shadow-1);
+  }
+  .bpillar:hover { box-shadow:var(--shadow-2); transform:translateY(-2px); }
+  .bpillar h3 { color:var(--c, var(--accent)); }
+  .bpillar p { font-size:14.5px; color:var(--ink-3); margin-top:6px; }
+  .bp-detail { display:none; margin-top:14px; border-top:1px solid var(--border-soft); padding-top:14px; }
+  .bpillar.open .bp-detail { display:block; }
+  .bp-detail ul { list-style:none; }
+  .bp-detail li { display:flex; gap:9px; padding:5px 0; font-size:14px; color:var(--ink-2); }
+  .bp-detail li::before { content:"✓"; color:var(--c, var(--ok)); font-weight:900; }
+  .bp-hint { font-size:12.5px; color:var(--ink-3); margin-top:12px; opacity:0.7; }
+
+  /* ---- Steps / roadmap ---- */
+  .steps { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-top:34px; }
+  .step { background:#fff; border:1px solid var(--border-soft); border-radius:var(--radius); padding:22px; box-shadow:var(--shadow-1); position:relative; }
+  .step .sn {
+    width:34px; height:34px; border-radius:50%; display:grid; place-items:center; font-weight:900; color:#fff;
+    background:linear-gradient(135deg, var(--accent-bright), var(--accent)); margin-bottom:12px; font-size:15px;
+  }
+  .step h3 { font-size:16.5px; }
+  .step p { font-size:14px; color:var(--ink-3); margin-top:6px; }
+  .step .tag { display:inline-block; margin-top:10px; font-size:12px; font-weight:800; color:var(--accent); background:var(--accent-soft); border-radius:999px; padding:3px 10px; }
+
+  /* ---- Ask ---- */
+  .ask { display:grid; grid-template-columns: 1.1fr 0.9fr; gap:0; margin-top:44px; border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow-2); border:1px solid var(--border-soft); }
+  .ask-left { background:#fff; padding:30px; }
+  .ask-left h3 { font-size:20px; margin-bottom:16px; }
+  .ask-note { margin-top:18px; font-size:14.5px; color:var(--ink-2); border-top:1px solid var(--border-soft); padding-top:14px; }
+  .ask-cta {
+    background:linear-gradient(135deg, #0b2e63, #14508c); color:#fff; padding:30px; display:flex; flex-direction:column; justify-content:center;
+  }
+  .ask-cta h3 { font-size:22px; color:#fff; }
+  .ask-cta p { margin-top:10px; font-size:15px; color:#c9dcf5; }
+  .ask-cta .big { font-size: clamp(26px, 3vw, 34px); font-weight:900; margin-top:16px; letter-spacing:-0.02em; }
+  .ask-cta small { display:block; margin-top:6px; color:#9dbde6; font-size:13px; }
+
+  /* ---- Final CTA ---- */
+  .final {
+    border-top:none; position:relative; overflow:hidden; color:#fff; text-align:center;
+    background:linear-gradient(135deg, #081f45, #0e4d92 55%, #8a4a08);
+  }
+  .final::before {
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(500px 280px at 80% 0%, rgba(255,255,255,0.14), transparent 70%);
+  }
+  .final .wrap { position:relative; }
+  .final h2 { color:#fff; }
+  .final p { color:#d5e3f7; max-width:680px; margin:14px auto 0; }
+  .btns { display:flex; gap:14px; justify-content:center; margin-top:30px; flex-wrap:wrap; }
+  .btn {
+    display:inline-block; text-decoration:none; font-weight:800; font-size:15.5px; border-radius:12px;
+    padding:14px 26px; transition:all .18s;
+  }
+  .btn-solid { background:#fff; color:var(--accent-ink); }
+  .btn-solid:hover { transform:translateY(-2px); box-shadow:0 10px 26px rgba(0,0,0,0.25); }
+  .btn-ghost { border:2px solid rgba(255,255,255,0.55); color:#fff; }
+  .btn-ghost:hover { background:rgba(255,255,255,0.12); }
+
+  footer { padding:26px 0; }
+  .foot { display:flex; align-items:center; justify-content:space-between; gap:14px; font-size:13.5px; color:var(--ink-3); flex-wrap:wrap; }
+
+  /* ---- Reveal ---- */
+  .reveal { opacity:0; transform:translateY(18px); transition:opacity .6s ease, transform .6s ease; }
+  .reveal.in { opacity:1; transform:none; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity:1; transform:none; transition:none; }
+    html { scroll-behavior:auto; }
+  }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 980px) {
+    .toc nav { display:none; position:absolute; top:100%; left:0; right:0; background:#fff; border-bottom:1px solid var(--border-soft); padding:10px 24px 16px; flex-direction:column; }
+    .toc nav.open { display:flex; }
+    .nav-toggle { display:block; }
+    .demo-wrap { grid-template-columns:1fr; }
+    .two { grid-template-columns:1fr; }
+    .ask { grid-template-columns:1fr; }
+  }
+  @media (max-width: 900px) {
+    .grid-4, .statband { grid-template-columns:repeat(2,1fr); }
+    .steps { grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width: 820px) {
+    .grid-3, .bpillars, .pillars-mini, .statband.three { grid-template-columns:1fr; }
+    .pillar-mini { border-left:none; border-top:1px solid var(--border-soft); }
+    .pillar-mini:first-child { border-top:none; }
+  }
+  @media (max-width: 460px) {
+    .grid-4, .statband, .steps { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<div class="toc">
+  <div class="wrap toc-inner">
+    <div class="brand"><span class="mark">S</span> speedsol<span style="font-weight:500;color:var(--ink-3)">&nbsp;· Perú</span></div>
+    <button class="nav-toggle" aria-label="Menú">☰</button>
+    <nav>
+      <a href="#reto">El reto</a>
+      <a href="#ahora">Por qué ahora</a>
+      <a href="#solucion">La solución</a>
+      <a href="#arquitectura">Cómo funciona</a>
+      <a href="#beneficios">Para el Estado</a>
+      <a href="#piloto">Piloto</a>
+    </nav>
+  </div>
+</div>
+
+<!-- ============ COVER ============ -->
+<section class="cover">
+  <div class="wrap">
+    <div class="cover-badge"><span class="dot"></span> Documento de apoyo — propuesta de conversación técnica</div>
+    <h1 class="reveal">Cada galón de combustible del Perú,<br><span class="accent-under">medido, trazado y conciliado</span></h1>
+    <p class="lead reveal">El Perú ya controla las órdenes de pedido (SCOP) y el transporte (GPS/PLATIN). Lo que nadie ve todavía es el <strong class="hl">volumen físico real</strong> que entra al tanque y sale por el surtidor de cada grifo. SpeedSol cierra ese vacío con medición electrónica en el punto de venta, reportada en tiempo real a los entes de control — <strong class="hl">sin costo para el presupuesto público</strong>.</p>
+    <div class="pillars-mini reveal">
+      <div class="pillar-mini">
+        <div class="ic ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="9"/></svg></div>
+        <h3>Medición física, no declaración</h3>
+        <p>Sondas en tanque y control en surtidor: el dato nace del equipo, no de un formulario.</p>
+      </div>
+      <div class="pillar-mini">
+        <div class="ic ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg></div>
+        <h3>Conciliación diaria automática</h3>
+        <p>Entradas vs. salidas vs. ventas declaradas, cruzadas cada noche por estación.</p>
+      </div>
+      <div class="pillar-mini">
+        <div class="ic ic-warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <h3>Modelo probado en la región</h3>
+        <p>México y Colombia ya exigen este reporte por norma. SpeedSol opera bajo esos marcos con clientes privados en ambos países.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RETO ============ -->
+<section id="reto" class="alt">
+  <div class="wrap">
+    <span class="eyebrow reveal">El reto</span>
+    <h2 class="reveal">El combustible sin trazabilidad física le cuesta al Perú por tres frentes</h2>
+    <p class="lead reveal">No es un problema de falta de sistemas — es que los sistemas actuales ven papeles y camiones, no galones. Entre la orden de pedido y la venta final hay un tramo ciego donde caben el contrabando, el desvío y la filtración de subsidios.</p>
+    <div class="grid-3">
+      <div class="card reveal">
+        <div class="ic ic-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg></div>
+        <h3>Contrabando fronterizo</h3>
+        <p>Combustible más barato de Bolivia y Ecuador entra por Puno y Tumbes y se vende en el mercado informal. Cada galón de contrabando es ISC e IGV que no se recauda, y desplaza la venta formal de los grifos que sí tributan.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic ic-warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+        <h3>Desvío a minería ilegal</h3>
+        <p>En Madre de Dios la demanda de combustible llegó a ser 8 veces el promedio nacional. La mayor parte no mueve vehículos: alimenta dragas y maquinaria de minería ilegal en la Amazonía, a través de rutas y grifos identificados pero difíciles de fiscalizar sin datos.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <h3>Subsidios que no llegan</h3>
+        <p>El FEPC ha costado más de S/ 18 000 millones desde 2004 y beneficia más a quien más consume. En el FISE, el quintil de mayores ingresos capta hasta 12 veces más subsidio que el más pobre. Sin trazabilidad por punto de venta, focalizar es imposible.</p>
+      </div>
+    </div>
+    <div class="statband">
+      <div class="stat-tile reveal">
+        <div class="num"><span data-count="120" data-prefix="" data-suffix=" mil">0</span></div>
+        <div class="lbl">galones/día de contrabando estimado desde Bolivia y Ecuador</div>
+        <span class="src">Fuente: AGESP (gremio de grifos), 2025</span>
+      </div>
+      <div class="stat-tile reveal">
+        <div class="num"><span data-count="85" data-suffix="%">0</span></div>
+        <div class="lbl">del combustible que entra a Madre de Dios se desviaría a minería ilegal</div>
+        <span class="src">Fuente: Colectivo PAS / La República, 2026</span>
+      </div>
+      <div class="stat-tile reveal">
+        <div class="num"><span data-count="18" data-prefix="S/ " data-suffix=" mil M">0</span></div>
+        <div class="lbl">costo acumulado del FEPC 2004–2024, en términos reales</div>
+        <span class="src">Fuente: Instituto Peruano de Economía, 2024</span>
+      </div>
+      <div class="stat-tile reveal">
+        <div class="num"><span data-count="5000" data-prefix="+">0</span></div>
+        <div class="lbl">grifos y EDS con registro de hidrocarburos bajo supervisión de Osinergmin</div>
+        <span class="src">Fuente: Datos Abiertos — Osinergmin, 2024</span>
+      </div>
+    </div>
+    <span class="verif-pill reveal">✓ Datos públicos y verificables — fuentes citadas por cifra</span>
+  </div>
+</section>
+
+<!-- ============ POR QUÉ AHORA ============ -->
+<section id="ahora">
+  <div class="wrap">
+    <span class="eyebrow reveal">Por qué ahora</span>
+    <h2 class="reveal">El marco normativo ya se movió. Falta la tecnología que lo haga cumplible.</h2>
+    <p class="lead reveal">En los últimos meses el Estado peruano reconoció el vacío y empezó a legislar sobre él. Cada una de estas normas exige datos que hoy se recogen por declaración manual — exactamente lo que la medición electrónica automatiza.</p>
+    <div class="grid-4">
+      <div class="card reveal">
+        <div class="ic ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg></div>
+        <h3>Inventarios diarios (may. 2026)</h3>
+        <p>La Res. 060-2026-OS/CD obliga a los grifos a reportar inventarios cada día en la PVO. Pero es <strong>auto-declaración</strong>: Osinergmin queda responsable de supervisar con un dato que no puede verificar.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic ic-warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+        <h3>Control anti-minería ilegal (jun. 2026)</h3>
+        <p>El DS 009-2026-EM y la Ley 32412 (regl. DS 117-2026-EF) ordenan trazabilidad y registro del combustible en zonas críticas, con SUNAT administrando el registro. La norma existe; el instrumento de medición, no.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic ic-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <h3>FEPC bajo presión</h3>
+        <p>Petroperú y Repsol se desafiliaron del fondo en 2025. El MEF ya transfirió más de S/ 17 000 millones para sostenerlo. La discusión sobre focalizar el subsidio es inevitable — y focalizar exige trazar.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg></div>
+        <h3>Precedente regional probado</h3>
+        <p>México lo exige desde la Miscelánea Fiscal 2013 (act. 2018/2020/2022) y Colombia desde el Decreto 1073 de 2015 (SICOM). Ecuador asigna cupos por identificación. El Perú no tendría que inventar nada: solo adoptar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SOLUCIÓN (demo) ============ -->
+<section id="solucion" class="alt">
+  <div class="wrap">
+    <span class="eyebrow reveal">La solución</span>
+    <h2 class="reveal">Un centro de control nacional que ve cada despacho en el momento en que ocurre</h2>
+    <p class="lead reveal">Sondas de nivel en los tanques (<strong class="hl">SpeedTANK</strong>), control electrónico del despacho en cada surtidor (<strong class="hl">SCA · SpeedCONTROL</strong>) y un gateway propio (<strong class="hl">Speed Atom</strong>) que transmite todo a la plataforma central. Osinergmin ve el inventario físico; SUNAT ve la venta real. Así se ve en operación:</p>
+    <div class="demo-tabs reveal">
+      <button class="demo-tab active" data-sc="normal">Despacho validado</button>
+      <button class="demo-tab" data-sc="desvio">Desvío detectado</button>
+      <button class="demo-tab" data-sc="cierre">Conciliación diaria</button>
+    </div>
+    <div class="demo-wrap">
+      <div class="console reveal">
+        <div class="console-head">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <span class="t">SCA · Centro de control — corredor sur</span>
+        </div>
+        <div class="console-body" id="consoleBody"></div>
+      </div>
+      <div>
+        <div class="beats" id="beats"></div>
+        <div class="outcome" id="outcome"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ARQUITECTURA ============ -->
+<section id="arquitectura">
+  <div class="wrap">
+    <span class="eyebrow reveal">Cómo funciona</span>
+    <h2 class="reveal">Del surtidor al ente de control, sin manos en el medio</h2>
+    <p class="lead reveal">El mismo dato que nace en el equipo de la estación alimenta, en paralelo, el control energético y el control fiscal. Nadie transcribe, nadie declara, nadie "ajusta". Pase el cursor por los pasos para seguir el recorrido del dato.</p>
+    <div class="flow-wrap">
+      <div class="flow-svg-card reveal">
+        <svg viewBox="0 0 880 430" role="img" aria-label="Flujo del dato: del surtidor y el tanque al gateway, la plataforma central y los entes de control">
+          <defs>
+            <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b45309"/></marker>
+            <marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0e4d92"/></marker>
+            <marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#047857"/></marker>
+          </defs>
+
+          <!-- zonas -->
+          <rect x="18" y="34" width="322" height="368" rx="14" fill="#fffdf6" stroke="#e0b46a" stroke-dasharray="7 5"/>
+          <text x="36" y="62" class="zlabel" fill="#8a4a08">GRIFO / EDS</text>
+          <rect x="626" y="34" width="236" height="368" rx="14" fill="#f6f9fe" stroke="#9dbde6" stroke-dasharray="7 5"/>
+          <text x="644" y="62" class="zlabel" fill="#0b2e63">ENTES DE CONTROL</text>
+
+          <!-- paso 1: surtidor -->
+          <g class="dstep" data-flow-step="0">
+            <rect x="44" y="86" width="124" height="66" rx="10" fill="#fff" stroke="#b45309" stroke-width="1.5"/>
+            <text x="106" y="113" text-anchor="middle" font-size="14.5" font-weight="800" fill="#0a1224">Surtidor</text>
+            <text x="106" y="132" text-anchor="middle" font-size="11.5" fill="#4a5878">SCA · cada despacho</text>
+            <path class="edge" d="M168 119 C 200 119, 206 160, 222 174" stroke="#b45309" stroke-width="2" fill="none" marker-end="url(#arrA)"/>
+            <text x="200" y="130" font-size="13" font-weight="800" fill="#b45309">①</text>
+          </g>
+
+          <!-- paso 2: tanque -->
+          <g class="dstep" data-flow-step="1">
+            <rect x="44" y="266" width="124" height="66" rx="10" fill="#fff" stroke="#b45309" stroke-width="1.5"/>
+            <text x="106" y="293" text-anchor="middle" font-size="14.5" font-weight="800" fill="#0a1224">Tanque</text>
+            <text x="106" y="312" text-anchor="middle" font-size="11.5" fill="#4a5878">SpeedTANK · sonda</text>
+            <path class="edge" d="M168 299 C 200 299, 206 248, 222 234" stroke="#b45309" stroke-width="2" fill="none" marker-end="url(#arrA)"/>
+            <text x="200" y="296" font-size="13" font-weight="800" fill="#b45309">②</text>
+          </g>
+
+          <!-- paso 3: gateway -->
+          <g class="dstep" data-flow-step="2">
+            <rect x="222" y="170" width="110" height="66" rx="10" fill="#fffbeb" stroke="#b45309" stroke-width="1.5"/>
+            <text x="277" y="197" text-anchor="middle" font-size="14" font-weight="800" fill="#0a1224">Speed Atom</text>
+            <text x="277" y="216" text-anchor="middle" font-size="11.5" fill="#4a5878">gateway cifrado</text>
+            <path class="edge" d="M332 203 L 420 203" stroke="#1d6fd1" stroke-width="2" fill="none" marker-end="url(#arrB)"/>
+            <text x="368" y="192" font-size="13" font-weight="800" fill="#1d6fd1">③</text>
+          </g>
+
+          <!-- paso 4: plataforma -->
+          <g class="dstep" data-flow-step="3">
+            <rect x="420" y="158" width="164" height="90" rx="12" fill="#eaf2fd" stroke="#0e4d92" stroke-width="1.8"/>
+            <text x="502" y="190" text-anchor="middle" font-size="15" font-weight="800" fill="#0b2e63">Plataforma SCA</text>
+            <text x="502" y="210" text-anchor="middle" font-size="11.5" fill="#2c3a57">concilia entradas ·</text>
+            <text x="502" y="226" text-anchor="middle" font-size="11.5" fill="#2c3a57">salidas · ventas</text>
+            <text x="430" y="150" font-size="13" font-weight="800" fill="#0e4d92">④</text>
+          </g>
+
+          <!-- paso 5: entes -->
+          <g class="dstep" data-flow-step="4">
+            <rect x="656" y="106" width="176" height="66" rx="10" fill="#fff" stroke="#0e4d92" stroke-width="1.5"/>
+            <text x="744" y="133" text-anchor="middle" font-size="13.5" font-weight="800" fill="#0a1224">Osinergmin · MINEM</text>
+            <text x="744" y="152" text-anchor="middle" font-size="11.5" fill="#4a5878">inventarios y movimientos</text>
+            <rect x="656" y="266" width="176" height="66" rx="10" fill="#fff" stroke="#047857" stroke-width="1.5"/>
+            <text x="744" y="293" text-anchor="middle" font-size="13.5" font-weight="800" fill="#0a1224">SUNAT</text>
+            <text x="744" y="312" text-anchor="middle" font-size="11.5" fill="#4a5878">ventas y comprobantes</text>
+            <path class="edge" d="M584 182 C 620 168, 624 152, 656 142" stroke="#0e4d92" stroke-width="2" fill="none" marker-end="url(#arrB)"/>
+            <path class="edge" d="M584 226 C 620 240, 624 284, 656 296" stroke="#047857" stroke-width="2" fill="none" marker-end="url(#arrG)"/>
+            <text x="610" y="156" font-size="13" font-weight="800" fill="#0e4d92">⑤</text>
+            <text x="610" y="276" font-size="13" font-weight="800" fill="#047857">⑤</text>
+          </g>
+
+          <!-- dato viajando (SMIL, sin JS) -->
+          <path id="flowPath" d="M106 152 C 106 200, 170 203, 277 203 L 502 203 C 600 203, 630 260, 744 294" fill="none" stroke="none"/>
+          <circle r="4.5" fill="#1d6fd1" opacity="0.9">
+            <animateMotion dur="7s" repeatCount="indefinite"><mpath href="#flowPath"/></animateMotion>
+          </circle>
+        </svg>
+      </div>
+      <div class="reveal">
+        <div class="stages" id="stages">
+          <div class="stage" data-flow-step="0">
+            <span class="n">1</span>
+            <div><div class="st-t">Surtidor — el despacho se mide</div><div class="st-s">Cada galón vendido, con producto, monto y hora</div></div>
+          </div>
+          <div class="stage" data-flow-step="1">
+            <span class="n">2</span>
+            <div><div class="st-t">Tanque — SpeedTANK verifica</div><div class="st-s">Sondas detectan cada entrada y caída de nivel</div></div>
+          </div>
+          <div class="stage" data-flow-step="2">
+            <span class="n">3</span>
+            <div><div class="st-t">Gateway — Speed Atom transmite</div><div class="st-s">Datos cifrados y continuos, sin intervención del operador</div></div>
+          </div>
+          <div class="stage" data-flow-step="3">
+            <span class="n">4</span>
+            <div><div class="st-t">Plataforma central — SCA concilia</div><div class="st-s">Entradas vs. salidas vs. ventas, por estación, cada día</div></div>
+          </div>
+          <div class="stage" data-flow-step="4">
+            <span class="n">5</span>
+            <div><div class="st-t">Entes de control — reciben en paralelo</div><div class="st-s">Osinergmin/MINEM: energía · SUNAT: fiscal</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="stage-detail reveal" id="stageDetail"></div>
+    <ul class="checklist two-col reveal">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>Se integra con la infraestructura existente del grifo — no exige reemplazar surtidores ni tanques.</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>Compatible con los sistemas ya obligatorios (SCOP, PVO, facturación electrónica): los complementa con el dato físico.</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>Hardware y software de desarrollo propio, operando hace más de 20 años en clientes como Ecopetrol, Glencore, Drummond y Ternium.</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>Preparado para la fase 2: cupos y subsidios asignados por identificación electrónica del vehículo, como opera Ecuador.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ BENEFICIOS ============ -->
+<section id="beneficios" class="alt">
+  <div class="wrap">
+    <span class="eyebrow reveal">Para el Estado</span>
+    <h2 class="reveal">Tres instituciones, tres victorias con el mismo dato</h2>
+    <p class="lead reveal">La trazabilidad física no es un proyecto de una entidad: el mismo flujo de información resuelve un problema distinto para cada una. Haga clic en cada pilar.</p>
+    <div class="bpillars">
+      <div class="bpillar reveal" style="--c:#0e4d92" data-bp="0">
+        <h3>Osinergmin / MINEM</h3>
+        <p>Del papel al galón: supervisión sobre volumen físico real, no sobre declaraciones.</p>
+        <div class="bp-detail"><ul>
+          <li>Inventarios de la PVO validados por sonda, no por formulario</li>
+          <li>Recargas de tanque sin orden SCOP detectadas al instante</li>
+          <li>Balance entrada–salida–venta por estación, cada noche</li>
+          <li>Base técnica para cupos por zona y por vehículo (fase 2)</li>
+        </ul></div>
+        <div class="bp-hint">Clic para ver el detalle</div>
+      </div>
+      <div class="bpillar reveal" style="--c:#047857" data-bp="1">
+        <h3>SUNAT / MEF</h3>
+        <p>Cada venta medida es una venta facturada: menos evasión, más ISC e IGV.</p>
+        <div class="bp-detail"><ul>
+          <li>Venta real del surtidor cruzada con facturación electrónica</li>
+          <li>El combustible de contrabando pierde su canal de salida formal</li>
+          <li>Sustento técnico para focalizar el gasto del FEPC y el FISE</li>
+          <li>Registro de la Ley 32412 alimentado con datos de medición</li>
+        </ul></div>
+        <div class="bp-hint">Clic para ver el detalle</div>
+      </div>
+      <div class="bpillar reveal" style="--c:#b45309" data-bp="2">
+        <h3>Seguridad y ambiente</h3>
+        <p>Sin combustible sin control, la draga se apaga: presión directa sobre la minería ilegal.</p>
+        <div class="bp-detail"><ul>
+          <li>Corredores críticos (Madre de Dios, Puno) con trazabilidad total</li>
+          <li>Estaciones con ventas anómalas identificadas por datos, no por denuncia</li>
+          <li>Cumplimiento verificable del DS 009-2026-EM</li>
+          <li>Evidencia técnica para operativos de SUNAT y Fiscalía</li>
+        </ul></div>
+        <div class="bp-hint">Clic para ver el detalle</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PILOTO ============ -->
+<section id="piloto">
+  <div class="wrap">
+    <span class="eyebrow reveal">Cómo empezar</span>
+    <h2 class="reveal">Un piloto acotado, medible y sin partida presupuestal</h2>
+    <p class="lead reveal">No proponemos un despliegue nacional de entrada. Proponemos demostrarlo donde más duele — un corredor crítico — con métricas pactadas de antemano y un modelo económico donde el punto de venta financia su propio control.</p>
+    <div class="steps">
+      <div class="step reveal">
+        <span class="sn">1</span>
+        <h3>Mesa técnica</h3>
+        <p>Convocada desde el MINEM (Dirección General de Hidrocarburos), con Osinergmin y SUNAT: definir corredor piloto, métricas de éxito y protocolo de datos.</p>
+        <span class="tag">Mes 1–2</span>
+      </div>
+      <div class="step reveal">
+        <span class="sn">2</span>
+        <h3>Piloto en corredor crítico</h3>
+        <p>Instalación en los grifos del corredor (p. ej. Puno–Madre de Dios): sondas, control de despacho y reporte en vivo.</p>
+        <span class="tag">Mes 3–8</span>
+      </div>
+      <div class="step reveal">
+        <span class="sn">3</span>
+        <h3>Evaluación y norma</h3>
+        <p>Auditoría de resultados contra las métricas pactadas. Si funciona, el reporte físico se incorpora a la regulación, como hicieron México y Colombia.</p>
+        <span class="tag">Mes 9–12</span>
+      </div>
+      <div class="step reveal">
+        <span class="sn">4</span>
+        <h3>Despliegue por fases</h3>
+        <p>Extensión a corredores fronterizos y luego a nivel nacional. Fase final: cupos y subsidios por identificación vehicular.</p>
+        <span class="tag">Año 2+</span>
+      </div>
+    </div>
+
+    <div class="statband three" style="margin-top:44px">
+      <div class="stat-tile proj reveal">
+        <div class="num"><span data-count="100" data-suffix="%">0</span></div>
+        <div class="lbl">de los despachos del corredor piloto conciliados automáticamente cada día</div>
+        <span class="src">Meta del piloto — proyección ilustrativa</span>
+      </div>
+      <div class="stat-tile proj reveal">
+        <div class="num">&lt; 24 h</div>
+        <div class="lbl">para detectar una recarga sin orden o una venta anómala (hoy: semanas, o nunca)</div>
+        <span class="src">Meta del piloto — proyección ilustrativa</span>
+      </div>
+      <div class="stat-tile proj reveal">
+        <div class="num"><span data-count="180" data-suffix=" mil">0</span></div>
+        <div class="lbl">galones/día del corredor Madre de Dios que pasarían a tener trazabilidad física</div>
+        <span class="src">Dimensionamiento sobre cifra pública (La República, 2026) — proyección</span>
+      </div>
+    </div>
+    <p class="proj-note reveal"><strong>Nota de honestidad:</strong> estas tres cifras son metas de diseño del piloto, no resultados prometidos. Los resultados reales se medirán contra el protocolo que se pacte en la mesa técnica, y serán auditables por el propio Estado.</p>
+
+    <div class="ask reveal">
+      <div class="ask-left">
+        <h3>Modelo económico</h3>
+        <div class="ask-note" style="border-top:none; padding-top:0; margin-top:0;">
+          <strong>Financiamiento del piloto:</strong> alcance, número de estaciones y esquema de financiamiento se definen en la mesa técnica. El modelo económico de escala — aplicable solo si el piloto funciona y se emite la norma — sigue la referencia regional: implementación por punto pagada por la propia estación o mayorista (~USD 20 000 por EDS; ~USD 50 000 por planta/importador; anualidad USD 2 000) y gestión central con una tarifa de <strong>USD 0.10 por galón validado</strong>. Las condiciones finales se pactan con el Estado en la mesa técnica.
+        </div>
+      </div>
+      <div class="ask-cta">
+        <h3>Costo para el presupuesto público</h3>
+        <p>A escala, el modelo se financia en el punto de venta y por volumen validado: el Estado no compra equipos, no licita software y no asume operación.</p>
+        <div class="big">S/ 0</div>
+        <small>de inversión del tesoro público en el despliegue a escala</small>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA FINAL ============ -->
+<section class="final" id="contacto">
+  <div class="wrap">
+    <h2 class="reveal">La norma ya existe. El precedente regional ya existe.<br>Falta encender la medición.</h2>
+    <p class="reveal">SpeedSol lleva más de 20 años midiendo y controlando fluidos en 15 países, con más de 5 000 proyectos instalados. Proponemos una conversación técnica de una hora con su equipo para dimensionar el corredor piloto.</p>
+    <div class="btns reveal">
+      <a class="btn btn-solid" href="mailto:contacto@speedsol.com?subject=Piloto%20de%20trazabilidad%20de%20combustible%20—%20Perú">Agendar conversación técnica</a>
+      <a class="btn btn-ghost" href="https://www.speedsol.com" target="_blank" rel="noopener">Conocer SpeedSol</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div class="brand"><span class="mark">S</span> speedsol</div>
+    <div>Soluciones de control de fluidos · contacto@speedsol.com · www.speedsol.com</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  /* ---------- Reveal on scroll ---------- */
+  var revealEls = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var ro = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); ro.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    revealEls.forEach(function(el){ ro.observe(el); });
+  } else {
+    revealEls.forEach(function(el){ el.classList.add('in'); });
+  }
+
+  /* ---------- Count-up ---------- */
+  function animateCount(el) {
+    var target = parseFloat(el.getAttribute('data-count'));
+    var prefix = el.getAttribute('data-prefix') || '';
+    var suffix = el.getAttribute('data-suffix') || '';
+    var dur = 1000, start = null;
+    function frame(ts) {
+      if (!start) start = ts;
+      var p = Math.min((ts - start) / dur, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      var val = Math.round(target * eased);
+      el.textContent = prefix + val.toLocaleString('es-PE') + suffix;
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+  var counters = document.querySelectorAll('[data-count]');
+  if ('IntersectionObserver' in window) {
+    var co = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if (e.isIntersecting) { animateCount(e.target); co.unobserve(e.target); } });
+    }, { threshold: 0.5 });
+    counters.forEach(function(el){ co.observe(el); });
+  } else {
+    counters.forEach(animateCount);
+  }
+
+  /* ---------- Scroll-spy nav ---------- */
+  var navLinks = document.querySelectorAll('.toc nav a');
+  var sections = [];
+  navLinks.forEach(function(a){
+    var id = a.getAttribute('href').slice(1);
+    var s = document.getElementById(id);
+    if (s) sections.push({ id:id, el:s, link:a });
+  });
+  if ('IntersectionObserver' in window) {
+    var so = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting) {
+          navLinks.forEach(function(a){ a.classList.remove('active'); });
+          var hit = sections.filter(function(s){ return s.el === e.target; })[0];
+          if (hit) hit.link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    sections.forEach(function(s){ so.observe(s.el); });
+  }
+
+  /* ---------- Mobile nav ---------- */
+  var toggle = document.querySelector('.nav-toggle');
+  var navEl = document.querySelector('.toc nav');
+  if (toggle) toggle.addEventListener('click', function(){ navEl.classList.toggle('open'); });
+  navLinks.forEach(function(a){ a.addEventListener('click', function(){ navEl.classList.remove('open'); }); });
+
+  /* ---------- Console demo ---------- */
+  var SCENARIOS = {
+    normal: {
+      outcome: '✓ Venta medida, conciliada y reportada a Osinergmin y SUNAT — sin intervención humana.',
+      steps: [
+        { line: { ts:'08:41:12', cls:'', txt:'GRIFO SAN LUIS · Surtidor 3 — despacho iniciado: Diésel B5' },
+          beat: '<b>El despacho nace medido.</b> El control en el surtidor registra producto, volumen y monto en el momento del despacho — no al final del día.' },
+        { line: { ts:'08:43:05', cls:'', txt:'Speed Atom #PL-4233 — volumen medido: 12.4 gal · S/ 210.80' },
+          beat: '<b>El gateway transmite solo.</b> Speed Atom envía la transacción cifrada a la plataforma central. El operador del grifo no toca nada.' },
+        { line: { ts:'08:43:06', cls:'ok', txt:'SpeedTANK — caída de nivel en Tanque 2 coincide: −12.4 gal ✓' },
+          beat: '<b>El tanque confirma al surtidor.</b> La sonda detecta la caída de nivel exacta. Si el surtidor dijera una cosa y el tanque otra, saltaría una alerta.' },
+        { line: { ts:'08:43:08', cls:'ok', txt:'Plataforma SCA — transacción conciliada · comprobante electrónico emitido' },
+          beat: '<b>Venta medida = venta facturada.</b> La transacción queda amarrada al comprobante electrónico de SUNAT en el mismo acto.' },
+        { line: { ts:'08:43:09', cls:'ok', txt:'Reporte automático → Osinergmin (inventario) · SUNAT (venta)' },
+          beat: '<b>Los dos entes ven el mismo dato.</b> Control energético y control fiscal reciben en paralelo, sin declaración intermedia.' }
+      ]
+    },
+    desvio: {
+      outcome: '⚠ Alerta generada y estación marcada para inspección — el mismo día, no semanas después.',
+      steps: [
+        { line: { ts:'14:02:33', cls:'', txt:'GRIFO EL CRUCE (corredor Puno–Madre de Dios) — recarga detectada: +2 800 gal' },
+          beat: '<b>La sonda ve la recarga física.</b> Nadie la declaró: SpeedTANK detecta el aumento de nivel en el tanque en el momento en que ocurre.' },
+        { line: { ts:'14:02:34', cls:'warn', txt:'Plataforma SCA — sin orden SCOP asociada a esta entrega' },
+          beat: '<b>Cruce inmediato con SCOP.</b> La plataforma busca la orden de pedido que ampare esos galones. No existe.' },
+        { line: { ts:'14:02:36', cls:'alert', txt:'ALERTA NIVEL 1 — posible ingreso de combustible no autorizado' },
+          beat: '<b>Hoy esto es invisible.</b> Sin medición en tanque, una recarga informal solo se descubre si un inspector llega justo ese día. Con medición, se descubre siempre.' },
+        { line: { ts:'14:02:40', cls:'warn', txt:'Notificación → Osinergmin · SUNAT — estación marcada para inspección prioritaria' },
+          beat: '<b>La fiscalización se vuelve quirúrgica.</b> Los operativos dejan de ser aleatorios: van donde los datos ya encontraron la anomalía.' },
+        { line: { ts:'14:15:02', cls:'', txt:'Expediente digital generado: niveles, horas, volúmenes — evidencia auditable' },
+          beat: '<b>Evidencia, no indicio.</b> El registro de la sonda es prueba técnica con hora y volumen — sustento para la sanción de Osinergmin o la acción de SUNAT.' }
+      ]
+    },
+    cierre: {
+      outcome: '✓ 212 estaciones conciliadas en automático; solo 2 excepciones requieren atención humana.',
+      steps: [
+        { line: { ts:'23:59:00', cls:'', txt:'Cierre diario · 214 estaciones del corredor' },
+          beat: '<b>Cada noche, un balance por estación.</b> Lo que entró al tanque, lo que salió por los surtidores y lo que se facturó — tres cifras que deben cuadrar.' },
+        { line: { ts:'23:59:41', cls:'', txt:'Entradas: 96 410 gal · Salidas: 95 988 gal · Ventas declaradas: 95 988 gal' },
+          beat: '<b>El triángulo de la trazabilidad.</b> Si las tres cifras cuadran, la estación opera limpio. Si no cuadran, hay combustible entrando o saliendo por fuera del sistema.' },
+        { line: { ts:'23:59:42', cls:'ok', txt:'212 estaciones conciliadas ✓' },
+          beat: '<b>La regla, no la excepción.</b> Para la estación formal, la conciliación es automática e invisible: cero trámites nuevos, cero carga administrativa.' },
+        { line: { ts:'23:59:44', cls:'warn', txt:'2 estaciones con diferencia > 1.5% — reporte de excepción generado' },
+          beat: '<b>El inspector recibe una lista corta.</b> En vez de fiscalizar 5 000 grifos a ciegas, el Estado fiscaliza las excepciones que los datos señalan.' }
+      ]
+    }
+  };
+
+  var consoleBody = document.getElementById('consoleBody');
+  var beatsEl = document.getElementById('beats');
+  var outcomeEl = document.getElementById('outcome');
+  var tabs = document.querySelectorAll('.demo-tab');
+  var playTimer = null;
+
+  function playScenario(key) {
+    if (playTimer) { clearInterval(playTimer); playTimer = null; }
+    var sc = SCENARIOS[key];
+    consoleBody.innerHTML = '';
+    beatsEl.innerHTML = '';
+    outcomeEl.classList.remove('show');
+    outcomeEl.textContent = sc.outcome;
+
+    var lines = [], beats = [];
+    sc.steps.forEach(function(step){
+      var l = document.createElement('div');
+      l.className = 'cline' + (step.line.cls ? ' ' + step.line.cls : '');
+      l.innerHTML = '<span class="ts">[' + step.line.ts + ']</span>' + step.line.txt;
+      consoleBody.appendChild(l); lines.push(l);
+      var b = document.createElement('div');
+      b.className = 'beat'; b.innerHTML = step.beat;
+      beatsEl.appendChild(b); beats.push(b);
+    });
+
+    var i = 0;
+    function tick() {
+      if (i > 0) beats[i-1].classList.remove('active');
+      if (i >= lines.length) {
+        outcomeEl.classList.add('show');
+        clearInterval(playTimer);
+        playTimer = setTimeout(function(){ playScenario(key); }, 5200);
+        return;
+      }
+      lines[i].classList.add('show');
+      beats[i].classList.add('active');
+      i++;
+    }
+    tick();
+    playTimer = setInterval(tick, 1700);
+  }
+
+  tabs.forEach(function(tab){
+    tab.addEventListener('click', function(){
+      tabs.forEach(function(t){ t.classList.remove('active'); });
+      tab.classList.add('active');
+      playScenario(tab.getAttribute('data-sc'));
+    });
+  });
+  playScenario('normal');
+
+  /* ---------- Stage machine ---------- */
+  var STAGE_DETAILS = [
+    '<b>Surtidor.</b> El control de despacho (SCA · SpeedCONTROL) registra cada venta con producto, volumen, monto, hora y manguera. El dato es del equipo de medición, no del cajero: no se puede "olvidar" registrar una venta.',
+    '<b>Tanque.</b> Las sondas SpeedTANK miden nivel, volumen y temperatura de forma continua y detectan cada recarga. Toda entrada de combustible queda registrada — tenga o no una orden SCOP que la ampare.',
+    '<b>Gateway.</b> Speed Atom, hardware de fabricación propia, transmite los datos cifrados y en continuo a la nube. Funciona con la infraestructura existente del grifo; no exige cambiar surtidores ni tanques.',
+    '<b>Plataforma central.</b> SCA concilia las tres cifras de cada estación — entradas, salidas, ventas facturadas — todos los días, y genera reportes de excepción solo donde algo no cuadra.',
+    '<b>Entes de control.</b> Osinergmin y MINEM reciben el flujo físico (inventarios y movimientos); SUNAT recibe el flujo fiscal (ventas y comprobantes). Mismo dato, dos supervisiones, cero declaración manual.'
+  ];
+  var stages = document.querySelectorAll('.stage');
+  var dsteps = document.querySelectorAll('.dstep');
+  var stageDetail = document.getElementById('stageDetail');
+  var flowTimer = null, flowIdx = 0;
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function flowActivate(n) {
+    flowIdx = (n + stages.length) % stages.length;
+    var key = String(flowIdx);
+    stages.forEach(function(s){ s.classList.toggle('active', s.getAttribute('data-flow-step') === key); });
+    dsteps.forEach(function(g){ g.classList.toggle('is-active', g.getAttribute('data-flow-step') === key); });
+    stageDetail.innerHTML = STAGE_DETAILS[flowIdx];
+  }
+  function flowAuto() {
+    if (flowTimer) clearInterval(flowTimer);
+    if (!reduceMotion) flowTimer = setInterval(function(){ flowActivate(flowIdx + 1); }, 2600);
+  }
+  stages.forEach(function(st, i){
+    ['mouseenter','focusin','click'].forEach(function(ev){
+      st.addEventListener(ev, function(){ flowActivate(i); flowAuto(); });
+    });
+  });
+  flowActivate(0); flowAuto();
+
+  /* ---------- Benefit pillars ---------- */
+  document.querySelectorAll('.bpillar').forEach(function(bp){
+    bp.addEventListener('click', function(){ bp.classList.toggle('open'); });
+  });
+})();
+</script>
+</body>
+</html>
