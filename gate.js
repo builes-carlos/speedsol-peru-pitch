@@ -1,6 +1,6 @@
 (function () {
   var PASSWORD = "builes.carlos";
-  var STORAGE_KEY = "site_unlocked_v1";
+  var STORAGE_KEY = "site_unlocked_v1:" + (location.pathname.split("/")[1] || "root");
 
   if (localStorage.getItem(STORAGE_KEY) === "1") return;
 
